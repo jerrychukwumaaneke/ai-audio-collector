@@ -29,7 +29,9 @@ const signinSchema = z.object({
   email: z
     .string({ required_error: "Email is required" })
     .email("Invalid email address"),
-  password: z.string({ required_error: "Password is required" }).min(1, "Password cannot be empty"),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(1, "Password cannot be empty"),
 });
 
 export async function signup(
@@ -68,7 +70,8 @@ export async function signup(
         lastName,
         phone,
       });
-    } catch {
+    } catch (err) {
+      console.error("Profile creation error:", err);
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       sendError(res, "Failed to create user profile", 500);
       return;

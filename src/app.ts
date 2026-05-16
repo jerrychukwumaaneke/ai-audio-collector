@@ -5,6 +5,8 @@ import morgan from "morgan";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import authRoutes from "./routes/auth.routes";
+import audioRoutes from "./routes/audio.routes";
+import reviewRoutes from "./routes/review.routes";
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/audio", audioRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
