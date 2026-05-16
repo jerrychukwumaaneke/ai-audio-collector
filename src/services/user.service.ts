@@ -9,7 +9,16 @@ export async function createUserProfile(data: {
   lastName: string;
   phone: string;
 }) {
-  const [user] = await db.insert(users).values(data).returning();
+  const [user] = await db
+  .insert(users)
+  .values({
+      id: data.id,
+      email: data.email,
+      firstName: data.firstName, 
+      lastName: data.lastName,   
+      phone: data.phone,
+    }
+  ).returning();
   return user;
 }
 
