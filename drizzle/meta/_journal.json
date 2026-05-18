@@ -8,6 +8,20 @@
       "when": 1778428307693,
       "tag": "0000_fluffy_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778760779435,
+      "tag": "0001_tough_hitman",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778846433609,
+      "tag": "0002_cloudy_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }
