@@ -10,6 +10,7 @@ import taskRoutes from "./routes/taskroutes";
 import userRoutes from "./routes/user.routes";
 import reviewerRoutes from "./routes/reviewer.routes";
 import submissionRoutes from "./routes/submissions.routes";
+import reviewerQueueRoutes from "./routes/reviewer-queue.routes";
 
 
 
@@ -27,6 +28,10 @@ app.use("/api/admin/users", userRoutes);
 
 app.use("/api/admin/reviewers", reviewerRoutes);
 app.use("/api/admin/submissions", submissionRoutes);
+
+app.use("/api/reviewer/queue", reviewerQueueRoutes);
+app.use("/api/reviewer", reviewerQueueRoutes);
+
 
 app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date() });
