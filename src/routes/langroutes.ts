@@ -5,12 +5,11 @@ import {
   getAllLanguagesHandler,
   updateLanguageHandler,
 } from "../controllers/langcontroller";
-import { authenticate } from "../middleware/authmiddleware";
-import { requireRole } from "../middleware/rolemiddleware";
+import { authenticate, authorize } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.use(authenticate, requireRole("ADMIN"));
+router.use(authenticate, authorize("ADMIN"));
 
 router.post("/", createLanguageHandler);
 router.get("/", getAllLanguagesHandler);

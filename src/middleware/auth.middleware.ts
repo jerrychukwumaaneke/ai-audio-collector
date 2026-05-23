@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { supabaseAdmin } from "../config/supabase";
 import { findUserById } from "../services/user.service";
+import { Role } from "../types";
 import { sendError } from "../utils/response";
 
 export async function authenticate(
@@ -39,4 +40,20 @@ export async function authenticate(
   } catch (err) {
     next(err);
   }
+}
+
+export function authorize(...roles: Role[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      sendError(res, "Unauthorized", 401);
+      return;
+    }
+
+    if (!roles.includes(req.user.role as Role)) {
+      sendError(res, `Access denied. Required role: ${roles.join(" or ")}`, 403);
+      return;
+    }
+
+    next();
+  };
 }

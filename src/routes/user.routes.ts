@@ -1,22 +1,12 @@
 import { Router } from "express";
-import {
-  deleteUserHandler,
-  getAllUsersHandler,
-  getUserByIdHandler,
-  updateUserRoleHandler,
-  updateUserStatusHandler,
-} from "../controllers/user.controller";
-import { authenticate } from "../middleware/authmiddleware";
-import { requireRole } from "../middleware/rolemiddleware";
+import { getMe, updateMe } from "../controllers/users.controller";
+import { authenticate } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.use(authenticate, requireRole("ADMIN"));
+router.use(authenticate);
 
-router.get("/", getAllUsersHandler);
-router.get("/:id", getUserByIdHandler);
-router.patch("/:id/role", updateUserRoleHandler);
-router.patch("/:id/status", updateUserStatusHandler);
-router.delete("/:id", deleteUserHandler);
+router.get("/me", getMe);
+router.patch("/me", updateMe);
 
 export default router;
