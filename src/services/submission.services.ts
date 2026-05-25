@@ -1,43 +1,43 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "../config/db";
+import { db } from "../db";
 import { languages, reviews, submissions, tasks, users } from "../db/schema";
-
+import { SUBMISSION_STATUSES, SubmissionStatus } from "../db/schema/submissions";
 
 export async function createSubmission({
   taskId,
   userId,
-  languageCode,
+  audioLanguageCode,
   audioUrl,
 }: {
   taskId: string;
   userId: string;
-  languageCode: string;
+  audioLanguageCode: string;
   audioUrl: string;
 }) {
-
   const existing = await db
     .select()
     .from(submissions)
     .where(
       and(
         eq(submissions.taskId, taskId),
-        eq(submissions.languageCode, languageCode),
+        eq(submissions.audioLanguageCode, audioLanguageCode),
         eq(submissions.userId, userId)
       )
     );
 
   if (existing.length > 0) {
-    throw new Error("You have already recorded this task in this language");
+    throw Object.assign(
+      new Error("You have already recorded this task in this language"),
+      { statusCode: 409 }
+    );
   }
-
-
 
   const [submission] = await db
     .insert(submissions)
     .values({
       taskId,
       userId,
-      languageCode,
+      audioLanguageCode,
       audioUrl,
       status: "PENDING",
     })
@@ -46,10 +46,9 @@ export async function createSubmission({
   return submission;
 }
 
-
 export async function getAllSubmissions(filters?: {
-  status?: "PENDING" | "APPROVED" | "REJECTED";
-  languageId?: string;
+  status?: SubmissionStatus;
+  languageCode?: string;
   userId?: string;
 }) {
   let query = db
@@ -57,27 +56,25 @@ export async function getAllSubmissions(filters?: {
       id: submissions.id,
       audioUrl: submissions.audioUrl,
       status: submissions.status,
+      failureReason: submissions.failureReason,
       createdAt: submissions.createdAt,
       updatedAt: submissions.updatedAt,
 
-      
       taskId: tasks.id,
-      taskText: tasks.text,
-      
-      
+      taskPrompt: tasks.prompt,
+
       userId: users.id,
       userFirstName: users.firstName,
       userLastName: users.lastName,
       userEmail: users.email,
-      
-      
+
       languageName: languages.name,
-      languageCode: languages.code,
+      audioLanguageCode: languages.code,
     })
     .from(submissions)
     .leftJoin(tasks, eq(tasks.id, submissions.taskId))
     .leftJoin(users, eq(users.id, submissions.userId))
-    .leftJoin(languages, eq(languages.id, submissions.languageCode))
+    .leftJoin(languages, eq(languages.code, submissions.audioLanguageCode))
     .$dynamic();
 
   const conditions = [];
@@ -86,14 +83,13 @@ export async function getAllSubmissions(filters?: {
     conditions.push(eq(submissions.status, filters.status));
   }
 
-  if (filters?.languageId) {
-    conditions.push(eq(submissions.languageCode, filters.languageId));
+  if (filters?.languageCode) {
+    conditions.push(eq(submissions.audioLanguageCode, filters.languageCode));
   }
 
   if (filters?.userId) {
     conditions.push(eq(submissions.userId, filters.userId));
   }
-
 
   if (conditions.length > 0) {
     query = query.where(and(...conditions));
@@ -105,11 +101,12 @@ export async function getAllSubmissions(filters?: {
     id: row.id,
     audioUrl: row.audioUrl,
     status: row.status,
+    failureReason: row.failureReason,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     task: {
       id: row.taskId,
-      text: row.taskText,
+      prompt: row.taskPrompt,
     },
     user: {
       id: row.userId,
@@ -118,47 +115,40 @@ export async function getAllSubmissions(filters?: {
       email: row.userEmail,
     },
     language: {
-      id: row.languageCode,
       name: row.languageName,
-      code: row.languageCode,
+      code: row.audioLanguageCode,
     },
   }));
 }
 
-
 export async function findSubmissionById(id: string) {
-
   const [row] = await db
     .select({
       id: submissions.id,
       audioUrl: submissions.audioUrl,
       status: submissions.status,
+      failureReason: submissions.failureReason,
       createdAt: submissions.createdAt,
       updatedAt: submissions.updatedAt,
-      
 
       taskId: tasks.id,
-      taskText: tasks.text,
-      
+      taskPrompt: tasks.prompt,
 
       userId: users.id,
       userFirstName: users.firstName,
       userLastName: users.lastName,
       userEmail: users.email,
-      
 
-      languageId: languages.id,
       languageName: languages.name,
-      languageCode: languages.code,
+      audioLanguageCode: languages.code,
     })
     .from(submissions)
     .leftJoin(tasks, eq(tasks.id, submissions.taskId))
     .leftJoin(users, eq(users.id, submissions.userId))
-    .leftJoin(languages, eq(languages.id, submissions.languageCode))
+    .leftJoin(languages, eq(languages.code, submissions.audioLanguageCode))
     .where(eq(submissions.id, id));
 
   if (!row) return null;
-
 
   const reviewHistory = await db
     .select({
@@ -179,11 +169,12 @@ export async function findSubmissionById(id: string) {
     id: row.id,
     audioUrl: row.audioUrl,
     status: row.status,
+    failureReason: row.failureReason,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     task: {
       id: row.taskId,
-      text: row.taskText,
+      prompt: row.taskPrompt,
     },
     user: {
       id: row.userId,
@@ -192,9 +183,8 @@ export async function findSubmissionById(id: string) {
       email: row.userEmail,
     },
     language: {
-      id: row.languageId,
       name: row.languageName,
-      code: row.languageCode,
+      code: row.audioLanguageCode,
     },
     reviewHistory: reviewHistory.map((r) => ({
       id: r.id,

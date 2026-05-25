@@ -30,7 +30,7 @@ export async function updateUserProfile(
 ) {
   const [user] = await db
     .update(users)
-    .set({ ...data, updatedAt: new Date() })
+    .set(data)
     .where(eq(users.id, id))
     .returning();
   return user ?? null;
@@ -79,7 +79,7 @@ export async function getAllUsers({
 export async function updateUserRole(id: string, role: Role) {
   const [updated] = await db
     .update(users)
-    .set({ role, updatedAt: new Date() })
+    .set({ role })
     .where(eq(users.id, id))
     .returning();
   return updated ?? null;
@@ -88,7 +88,7 @@ export async function updateUserRole(id: string, role: Role) {
 export async function updateUserStatus(id: string, status: UserStatus) {
   const [updated] = await db
     .update(users)
-    .set({ status, updatedAt: new Date() })
+    .set({ status })
     .where(eq(users.id, id))
     .returning();
   return updated ?? null;

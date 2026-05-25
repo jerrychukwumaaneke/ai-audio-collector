@@ -22,6 +22,13 @@
       "when": 1778846433609,
       "tag": "0002_cloudy_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779645384203,
+      "tag": "0003_stiff_kid_colt",
+      "breakpoints": true
     }
   ]
 }

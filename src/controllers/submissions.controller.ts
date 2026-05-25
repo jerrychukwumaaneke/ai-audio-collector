@@ -4,15 +4,16 @@ import {
   findSubmissionById,
   getAllSubmissions,
 } from "../services/submission.services";
+import { SUBMISSION_STATUSES } from "../db/schema/submissions";
 import { sendError, sendSuccess } from "../utils/response";
 
 const querySchema = z.object({
-  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
-  languageId: z.string().uuid("Invalid language ID").optional(),
+  status: z.enum(SUBMISSION_STATUSES).optional(),
+  languageCode: z.string().optional(),
   userId: z.string().uuid("Invalid user ID").optional(),
 });
 
-export async function getAllSubmissionsHandler(
+export async function listSubmissions(
   req: Request,
   res: Response,
   next: NextFunction
@@ -31,7 +32,7 @@ export async function getAllSubmissionsHandler(
   }
 }
 
-export async function getSubmissionByIdHandler(
+export async function fetchSubmission(
   req: Request,
   res: Response,
   next: NextFunction

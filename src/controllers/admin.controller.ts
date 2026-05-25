@@ -2,8 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import {
   findUserById,
   getAllUsers,
-  updateUserRole as setUserRole,
-  updateUserStatus as setUserStatus,
+  updateUserRole,
+  updateUserStatus,
 } from "../services/user.service";
 import { sendError, sendSuccess } from "../utils/response";
 import {
@@ -73,7 +73,7 @@ export async function changeRole(
       return;
     }
 
-    const updated = await setUserRole(id, parsed.data.role);
+    const updated = await updateUserRole(id, parsed.data.role);
     sendSuccess(res, updated, "User role updated successfully");
   } catch (err) {
     next(err);
@@ -105,7 +105,7 @@ export async function changeStatus(
       return;
     }
 
-    const updated = await setUserStatus(id, parsed.data.status);
+    const updated = await updateUserStatus(id, parsed.data.status);
     sendSuccess(res, updated, "User status updated successfully");
   } catch (err) {
     next(err);
