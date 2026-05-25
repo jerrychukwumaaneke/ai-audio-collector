@@ -1,36 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { z } from "zod";
 import { supabaseAdmin, supabaseClient } from "../config/supabase";
 import { createUserProfile, findUserById } from "../services/user.service";
 import { sendError, sendSuccess } from "../utils/response";
-
-const signupSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required" })
-    .email("Invalid email address"),
-  password: z
-    .string({ required_error: "Password is required" })
-    .min(8, "Password must be at least 8 characters"),
-  firstName: z
-    .string({ required_error: "First name is required" })
-    .min(1, "First name cannot be empty"),
-  lastName: z
-    .string({ required_error: "Last name is required" })
-    .min(1, "Last name cannot be empty"),
-  phone: z
-    .string({ required_error: "Phone number is required" })
-    .regex(
-      /^\+?[0-9]{7,15}$/,
-      "Phone must be a valid number (7–15 digits, optional leading + or 0)"
-    ),
-});
-
-const signinSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required" })
-    .email("Invalid email address"),
-  password: z.string({ required_error: "Password is required" }).min(1, "Password cannot be empty"),
-});
+import { signinSchema, signupSchema } from "../validators/auth.validators";
 
 export async function signup(
   req: Request,
@@ -40,8 +12,7 @@ export async function signup(
   try {
     const parsed = signupSchema.safeParse(req.body);
     if (!parsed.success) {
-      const message = parsed.error.errors.map((e) => e.message).join(", ");
-      sendError(res, message, 400);
+      sendError(res, parsed.error.errors.map((e) => e.message).join(", "), 400);
       return;
     }
 
@@ -88,8 +59,7 @@ export async function signin(
   try {
     const parsed = signinSchema.safeParse(req.body);
     if (!parsed.success) {
-      const message = parsed.error.errors.map((e) => e.message).join(", ");
-      sendError(res, message, 400);
+      sendError(res, parsed.error.errors.map((e) => e.message).join(", "), 400);
       return;
     }
 

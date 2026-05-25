@@ -5,6 +5,11 @@ import morgan from "morgan";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import authRoutes from "./routes/auth.routes";
+import adminRoutes from "./routes/admin.routes";
+import userRoutes from "./routes/user.routes";
+import languageRoutes from "./routes/languages.routes";
+import taskRoutes from "./routes/tasks.routes";
+import submissionRoutes from "./routes/submissions.routes";
 
 const app = express();
 
@@ -18,6 +23,11 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/admin/users", adminRoutes);
+app.use("/api/languages", languageRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/admin/submissions", submissionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
