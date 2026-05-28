@@ -8,13 +8,9 @@ const uploadAudioSchema = z.object({
   language: z.string({ required_error: "Language is required" }).min(2),
 });
 
-// Extend Request type for TypeScript
-interface AuthenticatedRequest extends Request {
-  file?: Express.Multer.File;
-  user?: { id: string };
-}
 
-export const uploadAudio = async (req: AuthenticatedRequest, res: Response) => {
+
+export const uploadAudio = async (req: Request, res: Response) => {
   try {
     // 1. File Presence Check
     if (!req.file) {
