@@ -39,7 +39,8 @@ export async function signup(
         lastName,
         phone,
       });
-    } catch {
+    } catch (err) {
+      console.error("Profile creation error:", err);
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       sendError(res, "Failed to create user profile", 500);
       return;
