@@ -1,27 +1,39 @@
 import { Queue } from "bullmq";
-import IORedis from "ioredis";
+import { redisConnection } from "./redis";
 
-export const redisConnection = new IORedis({
-  host: process.env.REDIS_HOST || "127.0.0.1",
-  port: Number(process.env.REDIS_PORT) || 6379,
-  maxRetriesPerRequest: null, // Required by BullMQ
-});
+export interface AudioJob {
+  submissionId: string;
+  audioUrl: string;
+  audioLanguageCode: string;
+  originalPrompt: string;
+  originalPromptLanguageCode: string;
+  supportedLanguageCodes: string[];
+}
 
-// Queue your backend pushes jobs TO (Python worker reads from this)
-export const audioQueue = new Queue("audio-processing", {
+export interface AudioResultJob {
+  submissionId: string;
+  status: "success" | "failed";
+  transcription?: string;
+  translations?: { languageCode: string; text: string }[];
+  errorMessage?: string;
+}
+
+export const audioProcessingQueue = new Queue("audio-processing", {
   connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 5000,
-    },
-    removeOnComplete: true,
-    removeOnFail: false,
+    backoff: { type: "exponential", delay: 30000 },
+    removeOnComplete: 100,
+    removeOnFail: 200,
   },
 });
 
-// Queue your backend LISTENS ON (Python worker pushes results here)
-export const resultsQueue = new Queue("audio-results", {
+export const audioResultsQueue = new Queue("audio-results", {
   connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 10000 },
+    removeOnComplete: 100,
+    removeOnFail: 200,
+  },
 });
