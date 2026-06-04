@@ -1,0 +1,1704 @@
+openapi: 3.1.0
+info:
+  title: AI Audio Collector API
+  description: REST API for the AI Audio Collector
+  version: 0.0.0
+servers:
+  - url: https://api.example.com/v1
+    description: Local development server
+paths:
+  /api/auth/signup:
+    post:
+      operationId: registerANewUser
+      tags:
+        - Auth
+      summary: Register a new user
+      requestBody:
+        required: true
+        description: User registration credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - id
+                      - email
+                      - firstName
+                      - lastName
+                      - phone
+                      - role
+                      - status
+                      - createdAt
+                      - updatedAt
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/auth/signin:
+    post:
+      operationId: loginAndGetAccessToken
+      tags:
+        - Auth
+      summary: Login and get access token
+      requestBody:
+        required: true
+        description: User login credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Signed in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          email:
+                            type: string
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+                          phone:
+                            type: string
+                          role:
+                            type: string
+                            enum:
+                              - ADMIN
+                              - USER
+                              - REVIEWER
+                          status:
+                            type: string
+                            enum:
+                              - ACTIVE
+                              - OFFLINE
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+                      session:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: string
+                          expiresAt:
+                            type: number
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/users/me:
+    get:
+      operationId: getMe
+      tags:
+        - Users
+      summary: Get current user profile
+      security:
+        - BearerJwt: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateMe
+      tags:
+        - Users
+      summary: Update current user profile
+      security:
+        - BearerJwt: []
+      requestBody:
+        required: true
+        description: Fields to update (all optional, at least one required)
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                lastName:
+                  type: string
+                  minLength: 1
+                phone:
+                  type: string
+                  pattern: ^\+?[0-9]{7,15}$
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/admin/users:
+    get:
+      operationId: listUsers
+      tags:
+        - Admin
+      summary: List all users
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - ADMIN
+              - USER
+              - REVIEWER
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - OFFLINE
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Users fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            email:
+                              type: string
+                            firstName:
+                              type: string
+                            lastName:
+                              type: string
+                            phone:
+                              type: string
+                            role:
+                              type: string
+                              enum:
+                                - ADMIN
+                                - USER
+                                - REVIEWER
+                            status:
+                              type: string
+                              enum:
+                                - ACTIVE
+                                - OFFLINE
+                            createdAt:
+                              type: string
+                              format: date-time
+                            updatedAt:
+                              type: string
+                              format: date-time
+                      meta:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                          totalPages:
+                            type: integer
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/admin/users/{id}:
+    get:
+      operationId: getUserById
+      tags:
+        - Admin
+      summary: Get user by ID
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/users/{id}/role:
+    patch:
+      operationId: changeRole
+      tags:
+        - Admin
+      summary: Change user role
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: New role for the user
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - ADMIN
+                    - USER
+                    - REVIEWER
+      responses:
+        "200":
+          description: User role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/users/{id}/status:
+    patch:
+      operationId: changeStatus
+      tags:
+        - Admin
+      summary: Change user status
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: New status for the user
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - ACTIVE
+                    - OFFLINE
+      responses:
+        "200":
+          description: User status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      phone:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - ADMIN
+                          - USER
+                          - REVIEWER
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - OFFLINE
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/languages:
+    post:
+      operationId: addLanguage
+      tags:
+        - Languages
+      summary: Add a new language
+      security:
+        - BearerJwt: []
+      requestBody:
+        required: true
+        description: Language to create
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - name
+              properties:
+                code:
+                  type: string
+                  pattern: ^[a-z]+$
+                  description: Lowercase letters only
+                name:
+                  type: string
+                  minLength: 1
+      responses:
+        "201":
+          description: Language created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      name:
+                        type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "409":
+          description: Language with this code already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+    get:
+      operationId: listLanguages
+      tags:
+        - Languages
+      summary: List all languages
+      security:
+        - BearerJwt: []
+      responses:
+        "200":
+          description: Languages fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        name:
+                          type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/languages/{code}:
+    delete:
+      operationId: removeLanguage
+      tags:
+        - Languages
+      summary: Remove a language
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[a-z]+$
+      responses:
+        "204":
+          description: Language deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/tasks:
+    post:
+      operationId: addTask
+      tags:
+        - Tasks
+      summary: Create a new task
+      security:
+        - BearerJwt: []
+      requestBody:
+        required: true
+        description: Task to create
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+                - type
+                - languageCode
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - READ_SPEECH
+                    - SPONTANEOUS_SPEECH
+                languageCode:
+                  type: string
+                  minLength: 1
+      responses:
+        "201":
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      prompt:
+                        type: string
+                      description:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                          - READ_SPEECH
+                          - SPONTANEOUS_SPEECH
+                      languageCode:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      createdBy:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+    get:
+      operationId: listTasks
+      tags:
+        - Tasks
+      summary: List all tasks
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - READ_SPEECH
+              - SPONTANEOUS_SPEECH
+        - name: languageCode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tasks fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        prompt:
+                          type: string
+                        description:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                            - READ_SPEECH
+                            - SPONTANEOUS_SPEECH
+                        languageCode:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        createdBy:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            firstName:
+                              type: string
+                            lastName:
+                              type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/tasks/{id}:
+    get:
+      operationId: fetchTask
+      tags:
+        - Tasks
+      summary: Get task by ID
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Task fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      prompt:
+                        type: string
+                      description:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                          - READ_SPEECH
+                          - SPONTANEOUS_SPEECH
+                      languageCode:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      createdBy:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: editTask
+      tags:
+        - Tasks
+      summary: Update a task
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: Fields to update
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                  minLength: 1
+      responses:
+        "200":
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      prompt:
+                        type: string
+                      description:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                          - READ_SPEECH
+                          - SPONTANEOUS_SPEECH
+                      languageCode:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: removeTask
+      tags:
+        - Tasks
+      summary: Delete a task
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Task deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/submissions/prepare:
+    post:
+      operationId: prepareSubmission
+      tags:
+        - Submissions
+      summary: Prepare a new submission and get upload URL
+      security:
+        - BearerJwt: []
+      requestBody:
+        required: true
+        description: Task and language for the submission
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskId
+                - audioLanguageCode
+              properties:
+                taskId:
+                  type: string
+                  format: uuid
+                audioLanguageCode:
+                  type: string
+                  minLength: 1
+      responses:
+        "201":
+          description: Submission prepared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      submissionId:
+                        type: string
+                        format: uuid
+                      uploadUrl:
+                        type: string
+                        description: Presigned URL to upload audio file
+                      expiresIn:
+                        type: number
+                        description: Upload window in seconds
+                      uploadInstructions:
+                        type: object
+                        properties:
+                          method:
+                            type: string
+                            example: PUT
+                          note:
+                            type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden - User access required
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/submissions/{id}/confirm:
+    post:
+      operationId: confirmSubmission
+      tags:
+        - Submissions
+      summary: Confirm a submission after audio upload
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Submission confirmed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      taskId:
+                        type: string
+                        format: uuid
+                      userId:
+                        type: string
+                        format: uuid
+                      audioUrl:
+                        type: string
+                      audioLanguageCode:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - AWAITING_UPLOAD
+                          - PENDING
+                          - READY_FOR_REVIEW
+                          - APPROVED
+                          - REJECTED
+                          - FAILED
+                      failureReason:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          description: Upload window has expired
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/submissions:
+    get:
+      operationId: listSubmissions
+      tags:
+        - Submissions
+      summary: List submissions
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: taskId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - AWAITING_UPLOAD
+              - PENDING
+              - READY_FOR_REVIEW
+              - APPROVED
+              - REJECTED
+              - FAILED
+        - name: audioLanguageCode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Submissions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        taskId:
+                          type: string
+                          format: uuid
+                        userId:
+                          type: string
+                          format: uuid
+                        audioUrl:
+                          type: string
+                        audioLanguageCode:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - AWAITING_UPLOAD
+                            - PENDING
+                            - READY_FOR_REVIEW
+                            - APPROVED
+                            - REJECTED
+                            - FAILED
+                        failureReason:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        task:
+                          type: object
+                          properties:
+                            prompt:
+                              type: string
+                            type:
+                              type: string
+                              enum:
+                                - READ_SPEECH
+                                - SPONTANEOUS_SPEECH
+                            languageCode:
+                              type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+  /api/submissions/{id}:
+    get:
+      operationId: fetchSubmission
+      tags:
+        - Submissions
+      summary: Get submission by ID
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Submission fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      taskId:
+                        type: string
+                        format: uuid
+                      userId:
+                        type: string
+                        format: uuid
+                      audioUrl:
+                        type: string
+                      audioLanguageCode:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - AWAITING_UPLOAD
+                          - PENDING
+                          - READY_FOR_REVIEW
+                          - APPROVED
+                          - REJECTED
+                          - FAILED
+                      failureReason:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      task:
+                        type: object
+                        properties:
+                          prompt:
+                            type: string
+                          type:
+                            type: string
+                            enum:
+                              - READ_SPEECH
+                              - SPONTANEOUS_SPEECH
+                          languageCode:
+                            type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: removeSubmission
+      tags:
+        - Submissions
+      summary: Cancel and delete a submission
+      security:
+        - BearerJwt: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Submission deleted successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  responses:
+    BadRequest:
+      description: The server could not understand the request due to invalid syntax.
+        The client should modify the request and try again.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+              errors:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - message
+                  properties:
+                    message:
+                      type: string
+    InternalServerError:
+      description: The server encountered an unexpected condition that prevented it
+        from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+    NotFound:
+      description: The server cannot find the requested resource.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+  securitySchemes:
+    BearerJwt:
+      type: http
+      bearerFormat: Json Web Token (JWT)
+      scheme: Bearer
+      description: "JWT Bearer token authentication. Pass the token as: Authorization:
+        Bearer <token>"
+tags:
+  - name: Auth
+    description: Authentication endpoints (signup and signin)
+  - name: Users
+    description: User management
+  - name: Admin
+    description: Admin operations
+  - name: Languages
+    description: Language resources
+  - name: Tasks
+    description: Task management
+  - name: Submissions
+    description: Submission handling
